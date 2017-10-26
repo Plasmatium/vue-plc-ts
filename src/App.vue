@@ -7,10 +7,15 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import HelloWorld from './components/HelloWorld'
+import HelloWorld from './components/HelloWorld.vue'
 
 export default Vue.extend({
   name: 'app',
+  data () {
+    return {
+      tmsg: 'test msg'
+    }
+  },
   components: {
     HelloWorld
   }
