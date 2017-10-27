@@ -1,5 +1,22 @@
 import * as objectPath from 'object-path'
 
+interface OBJCLOSURE<T> {
+  // val: T ---- this is a private property, implement in createObjClosure
+  toString : () => T
+  lineIn: (newVal: T) => void
+}
+
+const createObjClosure = function<T> (val: T): OBJCLOSURE<T> {
+  let closureVal = val
+  return {
+    toString: () => closureVal,
+    lineIn: (newVal: T) => {
+      if (newVal === closureVal) { return }
+      else { closureVal = newVal}
+    }
+  }
+}
+
 interface DPTR {
   type: string
   name: string
@@ -16,7 +33,7 @@ interface LogicFuncParam {
 interface BPARAM {
   name: string
   linePath?: string
-  init: any
+  init: any // 必须初始化
 }
 
 interface INPUT {
@@ -92,7 +109,7 @@ const makeClosure = () => {
 const SubBlock = class {
   [propName: string]: any
   constructor (ownShape: SHAPE) {
-    // 注入所有子块到this
+    // 注入所有子块到this，以及子块的子块（递归注入）
     ownShape.subBlocks.forEach(dptr => {
       let {type, name, qInit} = dptr
       let M = Maker[type]
@@ -100,6 +117,7 @@ const SubBlock = class {
     })
 
     // 注入所有param参数至闭包
+    // TODO: 闭包重写
     this.paramsClosure = makeClosure()
     ownShape.params && ownShape.params.forEach(param => {
       let {name, init} = param
@@ -107,9 +125,19 @@ const SubBlock = class {
       this.paramsClosure()[name] = init
     })
 
-    // 注入所有input到this
-    // TODO:
-    ownShape.inputs && ownShape.inputs.forEach(input => {})
+    // 注入所有input到this，并根据linePath连接到坐实的具体变量上
+    ownShape.inputs && ownShape.inputs.forEach(input => {
+      let {name, init, linePath} = input
+      let closure: OBJCLOSURE<typeof init>
+      if (linePath) {
+        closure = <OBJCLOSURE<typeof init>>objectPath.get(this, linePath)
+        if (!closure) { throw Error(`input path ${linePath} invalid on ${this}`)}
+        closure.lineIn(init)
+      } else {
+        closure = createObjClosure(init)
+      }
+      this[name] = closure
+    })
   }
 }
 
