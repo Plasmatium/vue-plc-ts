@@ -1,18 +1,35 @@
 import * as objectPath from 'object-path'
 
-interface OBJCLOSURE<T> {
-  // val: T ---- this is a private property, implement in createObjClosure
-  toString : () => T
+interface REACTIVECLOSURE<T> {
+  val: T
+  toString: () => T
   lineIn: (newVal: T) => void
 }
 
-const createObjClosure = function<T> (val: T): OBJCLOSURE<T> {
-  let closureVal = val
+const createReactiveClosure = function<T> (initVal: T): REACTIVECLOSURE<T> {
+  let rslt: any = {val: initVal}
+  let toString = () => rslt.val
+  let lineIn = (newVal: T) => {
+    if (newVal === rslt.val) { return }
+    else { rslt.val = newVal }
+  }
+  (<any>Object).assign(rslt, {toString, lineIn})
+  return <REACTIVECLOSURE<T>>rslt
+}
+
+interface NONEREACTIVECLOSURE<T> {
+  // val: T ===> 将存储在createNoneReactiveClosure闭包中
+  toString: () => T
+  lineIn: (newVal: T) => void
+}
+
+const createNoneReactiveClosure = function<T> (initVal: T): NONEREACTIVECLOSURE<T> {
+  let closureVal = initVal
   return {
     toString: () => closureVal,
     lineIn: (newVal: T) => {
       if (newVal === closureVal) { return }
-      else { closureVal = newVal}
+      else { closureVal = newVal }
     }
   }
 }
@@ -38,8 +55,8 @@ interface BPARAM {
 
 interface INPUT {
   name: string
-  linePath: string
-  init?: boolean
+  linePath?: string
+  init: boolean // 必须初始化
 }
 
 interface SHAPE {
@@ -101,46 +118,57 @@ const Relay = class {
 const RunningBlock = class {
 }
 
-const makeClosure = () => {
-  let closure = {}
-  return () => closure
-}
 
 const SubBlock = class {
   [propName: string]: any
-  constructor (ownShape: SHAPE) {
+  constructor (shape: SHAPE) {
     // 注入所有子块到this，以及子块的子块（递归注入）
-    ownShape.subBlocks.forEach(dptr => {
+    shape.subBlocks.forEach(dptr => {
       let {type, name, qInit} = dptr
       let M = Maker[type]
       this[name] = new M()
     })
 
     // 注入所有param参数至闭包
-    // TODO: 闭包重写
-    this.paramsClosure = makeClosure()
-    ownShape.params && ownShape.params.forEach(param => {
-      let {name, init} = param
+    shape.params && shape.params.forEach(param => {
       // 将参数实体注入到闭包中，而不是this中（否则会被vue响应）
-      this.paramsClosure()[name] = init
+      this.insertElement(param, createNoneReactiveClosure)
     })
 
     // 注入所有input到this，并根据linePath连接到坐实的具体变量上
-    ownShape.inputs && ownShape.inputs.forEach(input => {
-      let {name, init, linePath} = input
-      let closure: OBJCLOSURE<typeof init>
-      if (linePath) {
-        closure = <OBJCLOSURE<typeof init>>objectPath.get(this, linePath)
-        if (!closure) { throw Error(`input path ${linePath} invalid on ${this}`)}
-        closure.lineIn(init)
-      } else {
-        closure = createObjClosure(init)
-      }
-      this[name] = closure
+    shape.inputs && shape.inputs.forEach(input => {
+      this.insertElement(input, createReactiveClosure)
     })
+
+    this.logic = shape.logic
+  }
+  
+  // 注入函数，将param或者input注入到this中
+  // INITTYPE是函数参数element中init的类型
+  // ETYPE是createFunc的返回类型，是响应闭包或者非响应闭包
+  // FUNCTYPE是为了约束createFunc只在createNoneReactiveClosure
+  // 和createReactiveClosure中选择
+  insertElement<INITTYPE, 
+  ETYPE extends REACTIVECLOSURE<INITTYPE> | NONEREACTIVECLOSURE<INITTYPE>,
+  FUNCTYPE extends (typeof createReactiveClosure | typeof createNoneReactiveClosure)>
+  (element: INPUT | BPARAM,
+    createFunc: FUNCTYPE): void {
+    let {name, init, linePath} = element
+    let closure: ETYPE
+    if (linePath) {
+      closure = <ETYPE>objectPath.get(this, linePath)
+      if (!closure) { throw Error(`input path ${linePath} invalid on ${this}`)}
+      closure.lineIn(init)
+    } else {
+      closure = createFunc(init)
+    }
+    this[name] = closure
+  }
+
+  run () {
+    this.logic(this)
   }
 }
-
 // Maker
 interface IMaker {
   [blockName: string]: any
@@ -148,3 +176,17 @@ interface IMaker {
 const Maker: IMaker = {
   Relay
 }
+
+// 预制模块
+const Holder = new SubBlock({
+  subBlocks: [
+    {name: 'q0', type: 'Relay'}
+  ],
+  inputs: [
+    {name: 'i0', init: false},
+    {name: 'i1', init: false}
+  ],
+  logic: ({i0, i1, q0}) => {
+    q0.lineIn((i1 ^ 1) * i0 + q0)
+  }
+})
