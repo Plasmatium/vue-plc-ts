@@ -71,6 +71,8 @@ interface SHAPE {
   // 逻辑电平输入，响应式。其linePath同上面params
   inputs?: INPUT[]
 
+  // TODO: 需要有一个output，指定一个path，关联到本体的lineIn，toString，pe和ne
+
   //逻辑运算实体
   logic: (param: LogicFuncParam) => void
 }
@@ -164,15 +166,18 @@ const SubBlock = class {
       closure = createFunc(init)
     }
     this[name] = closure
+    // TODO: defineProperty this[name], set -> lineIn, get -> toString
   }
 
   run () {
     this.logic(this)
   }
+  
+  // TODO: 需要完成 this.pe, this.ne, this.toString
 }
 // Maker
 interface IMaker {
-  [blockName: string]: any
+  [blockName: string]: any // TODO: 需要指定详细类型
 }
 const Maker: IMaker = {
   Relay
@@ -193,4 +198,5 @@ const holderShape: SHAPE = {
 }
 
 // const holder = /*some function*/
+// TODO: 重写Holder为一个类，继承自SubBlock
 debugger
