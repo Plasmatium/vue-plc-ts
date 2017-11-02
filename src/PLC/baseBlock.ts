@@ -84,7 +84,8 @@ const Relay = class {
     set: (newVal: boolean) => void
   }
   constructor (dptr: DPTR) {
-    this.state = false || Boolean(dptr.qInit)
+    debugger
+    this.state = false || Boolean(dptr && dptr.qInit)
     this.getLast = () => {
       let val = this.state
       return {val, set: (newVal) => { val = newVal }}
@@ -177,8 +178,8 @@ const Maker: IMaker = {
   Relay
 }
 
-// 预制模块
-const Holder = new SubBlock({
+// 预制模块的描述表
+const holderShape: SHAPE = {
   subBlocks: [
     {name: 'q0', type: 'Relay'}
   ],
@@ -189,4 +190,7 @@ const Holder = new SubBlock({
   logic: ({i0, i1, q0}) => {
     q0.lineIn((i1 ^ 1) * i0 + q0)
   }
-})
+}
+
+// const holder = /*some function*/
+debugger

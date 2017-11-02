@@ -22,6 +22,8 @@
 
 <script lang="ts">
 import Vue from 'vue'
+import * as bbb from '../PLC/baseBlock'
+console.log(bbb)
 export default Vue.extend({
   name: 'HelloWorld',
   data () {
