@@ -72,7 +72,7 @@ interface SHAPE {
   inputs?: INPUT[]
 
   // TODO: 需要有一个output，指定一个path，关联到本体的lineIn，toString，pe和ne
-
+  output: string
   //逻辑运算实体
   logic: (param: LogicFuncParam) => void
 }
@@ -85,7 +85,7 @@ const Relay = class {
     val: boolean,
     set: (newVal: boolean) => void
   }
-  constructor (dptr: DPTR) {
+  constructor (dptr?: DPTR) {
     debugger
     this.state = false || Boolean(dptr && dptr.qInit)
     this.getLast = () => {
@@ -129,7 +129,7 @@ const SubBlock = class {
     shape.subBlocks.forEach(dptr => {
       let {type, name, qInit} = dptr
       let M = Maker[type]
-      this[name] = new M()
+      this[name] = new M() // TODO: Error
     })
 
     // 注入所有param参数至闭包
@@ -144,6 +144,14 @@ const SubBlock = class {
     })
 
     this.logic = shape.logic
+    
+    //设置output（this.Q），注入pe，ne，toString方法
+    if (!this[shape.output]) { throw Error(`output path invalid: ${shape.output}`) }
+    this.Q = this[shape.output]
+    let methods = ['pe', 'ne', 'toString']
+    methods.forEach((method: string) => {
+      this[method] = this.Q[method]
+    })
   }
   
   // 注入函数，将param或者input注入到this中
@@ -172,31 +180,34 @@ const SubBlock = class {
   run () {
     this.logic(this)
   }
-  
-  // TODO: 需要完成 this.pe, this.ne, this.toString
-}
-// Maker
-interface IMaker {
-  [blockName: string]: any // TODO: 需要指定详细类型
-}
-const Maker: IMaker = {
-  Relay
-}
-
-// 预制模块的描述表
-const holderShape: SHAPE = {
-  subBlocks: [
-    {name: 'q0', type: 'Relay'}
-  ],
-  inputs: [
-    {name: 'i0', init: false},
-    {name: 'i1', init: false}
-  ],
-  logic: ({i0, i1, q0}) => {
-    q0.lineIn((i1 ^ 1) * i0 + q0)
-  }
 }
 
 // const holder = /*some function*/
 // TODO: 重写Holder为一个类，继承自SubBlock
+class Holder extends SubBlock {
+  constructor () {
+    let holderShape: SHAPE = {
+      subBlocks: [
+        {name: 'q0', type: 'Relay'}
+      ],
+      inputs: [
+        {name: 'i0', init: false},
+        {name: 'i1', init: false}
+      ],
+      output: 'q0',
+      logic: ({i0, i1, q0}) => {
+        q0.lineIn((i1 ^ 1) * i0 + q0)
+      }
+    }
+    super(holderShape)
+  }
+}
+
+// Maker
+interface IMaker {
+  [blockName: string]: typeof Relay | typeof SubBlock // TODO: 需要指定详细类型
+}
+const Maker: IMaker = {
+  Relay
+}
 debugger
