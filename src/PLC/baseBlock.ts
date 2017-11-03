@@ -218,10 +218,13 @@ class Holder extends SubBlock {
 
 // Maker
 interface IMaker {
-  [blockName: string]: RELAY
+  [blockName: string]: {
+    new(): RELAY
+  }
 }
 
 const Maker: IMaker = {
-  Relay //TODO: Relay实现了RELAY，但是不是RELAY，new Relay() 才是RELAY
+  Relay, //TODO: Relay实现了RELAY，但是不是RELAY，new Relay() 才是RELAY
+  Holder
 }
 debugger
