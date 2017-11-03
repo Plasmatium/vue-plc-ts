@@ -1,5 +1,12 @@
 import * as objectPath from 'object-path'
 
+interface RELAY {
+  pe: () => boolean
+  ne: () => boolean
+  toString: () => boolean
+  [propertyName: string]: any
+}
+
 interface REACTIVECLOSURE<T> {
   val: T
   toString: () => T
@@ -79,7 +86,7 @@ interface SHAPE {
 
 const BaseBlock = class {} // just for type assertion
 
-const Relay = class {
+const Relay = class implements RELAY {
   state: boolean
   getLast: () => {
     val: boolean,
@@ -122,9 +129,10 @@ const RunningBlock = class {
 }
 
 
-const SubBlock = class {
+const SubBlock = class implements RELAY {
   [propName: string]: any
-  constructor (shape: SHAPE) {
+  constructor (shape?: SHAPE) {
+    if (!shape) { throw Error('shape not defined') }
     // 注入所有子块到this，以及子块的子块（递归注入）
     shape.subBlocks.forEach(dptr => {
       let {type, name, qInit} = dptr
@@ -148,11 +156,16 @@ const SubBlock = class {
     //设置output（this.Q），注入pe，ne，toString方法
     if (!this[shape.output]) { throw Error(`output path invalid: ${shape.output}`) }
     this.Q = this[shape.output]
-    let methods = ['pe', 'ne', 'toString']
-    methods.forEach((method: string) => {
-      this[method] = this.Q[method]
-    })
+    // let methods = ['pe', 'ne', 'toString']
+    // methods.forEach((method: string) => {
+    //   this[method] = this.Q[method]
+    // })
   }
+
+  pe() { return this.Q.pe() }
+  ne() { return this.Q.ne() }
+  toString() { return this.Q.toString() }
+
   
   // 注入函数，将param或者input注入到this中
   // INITTYPE是函数参数element中init的类型
@@ -205,9 +218,10 @@ class Holder extends SubBlock {
 
 // Maker
 interface IMaker {
-  [blockName: string]: typeof Relay | typeof SubBlock // TODO: 需要指定详细类型
+  [blockName: string]: RELAY
 }
+
 const Maker: IMaker = {
-  Relay
+  Relay //TODO: Relay实现了RELAY，但是不是RELAY，new Relay() 才是RELAY
 }
 debugger
