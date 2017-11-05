@@ -1,18 +1,5 @@
 import * as objectPath from 'object-path'
 
-interface RELAY {
-  pe: () => boolean
-  ne: () => boolean
-  toString: () => boolean
-  [propertyName: string]: any
-}
-
-interface REACTIVECLOSURE<T> {
-  val: T
-  toString: () => T
-  lineIn: (newVal: T) => void
-}
-
 const createReactiveClosure = function<T> (initVal: T): REACTIVECLOSURE<T> {
   let rslt: any = {val: initVal}
   let toString = () => rslt.val
@@ -24,12 +11,6 @@ const createReactiveClosure = function<T> (initVal: T): REACTIVECLOSURE<T> {
   return <REACTIVECLOSURE<T>>rslt
 }
 
-interface NONEREACTIVECLOSURE<T> {
-  // val: T ===> 将存储在createNoneReactiveClosure闭包中
-  toString: () => T
-  lineIn: (newVal: T) => void
-}
-
 const createNoneReactiveClosure = function<T> (initVal: T): NONEREACTIVECLOSURE<T> {
   let closureVal = initVal
   return {
@@ -39,49 +20,6 @@ const createNoneReactiveClosure = function<T> (initVal: T): NONEREACTIVECLOSURE<
       else { closureVal = newVal }
     }
   }
-}
-
-interface DPTR {
-  type: string
-  name: string
-  qInit?: boolean // Output 'Q' init value
-}
-
-interface LogicFuncParam {
-  [paramName: string]: any
-}
-
-
-// Block params, not reactive. It could be reactive by other 
-// block's "Q" output.
-interface BPARAM {
-  name: string
-  linePath?: string
-  init: any // 必须初始化
-}
-
-interface INPUT {
-  name: string
-  linePath?: string
-  init: boolean // 必须初始化
-}
-
-interface SHAPE {
-  // 子块结构描述
-  subBlocks: DPTR[]
-
-  // 块的参数，非响应（避免不必要的响应式触发，若需要，可由罗技快触发）
-  // 参数中的linePath可提供直连subBlocks中下一层参数，如高级计数器的init直连
-  // 下一层普通计数器的init（假设高级计数器由普通计数器和其他逻辑块组成）
-  params?: BPARAM[]
-
-  // 逻辑电平输入，响应式。其linePath同上面params
-  inputs?: INPUT[]
-
-  // TODO: 需要有一个output，指定一个path，关联到本体的lineIn，toString，pe和ne
-  output: string
-  //逻辑运算实体
-  logic: (param: LogicFuncParam) => void
 }
 
 const BaseBlock = class {} // just for type assertion
@@ -137,7 +75,7 @@ const SubBlock = class implements RELAY {
     shape.subBlocks.forEach(dptr => {
       let {type, name, qInit} = dptr
       let M = Maker[type]
-      this[name] = new M() // TODO: Error
+      this[name] = new M() 
     })
 
     // 注入所有param参数至闭包
@@ -187,7 +125,6 @@ const SubBlock = class implements RELAY {
       closure = createFunc(init)
     }
     this[name] = closure
-    // TODO: defineProperty this[name], set -> lineIn, get -> toString
   }
 
   run () {
@@ -195,9 +132,7 @@ const SubBlock = class implements RELAY {
   }
 }
 
-// const holder = /*some function*/
-// TODO: 重写Holder为一个类，继承自SubBlock
-class Holder extends SubBlock {
+class Holder extends SubBlock implements RELAY {
   constructor () {
     let holderShape: SHAPE = {
       subBlocks: [
@@ -216,15 +151,10 @@ class Holder extends SubBlock {
   }
 }
 
-// Maker
-interface IMaker {
-  [blockName: string]: {
-    new(): RELAY
-  }
+const Maker: IMaker = {
+  Relay, // Relay实现了RELAY，但是不是RELAY，new Relay() 才是RELAY
+  Holder,
+  SubBlock
 }
 
-const Maker: IMaker = {
-  Relay, //TODO: Relay实现了RELAY，但是不是RELAY，new Relay() 才是RELAY
-  Holder
-}
-debugger
+export default Maker
