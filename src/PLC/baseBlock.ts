@@ -1,17 +1,21 @@
-import * as objectPath from 'object-path'
+import * as objectPath from "object-path"
 
-const createReactiveClosure = function<T> (initVal: T): REACTIVECLOSURE<T> {
-  let rslt: any = {val: initVal}
+const createReactiveClosure = function
+<T extends (boolean | number | string)>
+(initVal: T): REACTIVECLOSURE<T> {
+  let rslt = <REACTIVECLOSURE<T>>{val: initVal}
   let toString = () => rslt.val
   let lineIn = (newVal: T) => {
     if (newVal === rslt.val) { return }
     else { rslt.val = newVal }
   }
   (<any>Object).assign(rslt, {toString, lineIn})
-  return <REACTIVECLOSURE<T>>rslt
+  return rslt
 }
 
-const createNoneReactiveClosure = function<T> (initVal: T): NONEREACTIVECLOSURE<T> {
+const createNoneReactiveClosure = function
+<T extends (boolean | number | string)>
+(initVal: T): NONEREACTIVECLOSURE<T> {
   let closureVal = initVal
   return {
     toString: () => closureVal,
@@ -68,7 +72,7 @@ const RunningBlock = class {
 
 
 const SubBlock = class implements RELAY {
-  [propName: string]: any
+  [propName: string]: REACTIVECLOSURE<any> | NONEREACTIVECLOSURE<any> | RELAY | Function
   constructor (shape?: SHAPE) {
     if (!shape) { throw Error('shape not defined') }
     // 注入所有子块到this，以及子块的子块（递归注入）
@@ -100,8 +104,9 @@ const SubBlock = class implements RELAY {
     // })
   }
 
-  pe() { return this.Q.pe() }
-  ne() { return this.Q.ne() }
+  // below is ugly
+  pe() { let Q = <RELAY>(this.Q); return Q.pe() }
+  ne() { let Q = <RELAY>(this.Q); return Q.ne() }
   toString() { return this.Q.toString() }
 
   
@@ -110,7 +115,7 @@ const SubBlock = class implements RELAY {
   // ETYPE是createFunc的返回类型，是响应闭包或者非响应闭包
   // FUNCTYPE是为了约束createFunc只在createNoneReactiveClosure
   // 和createReactiveClosure中选择
-  insertElement<INITTYPE, 
+  insertElement<INITTYPE extends (boolean | number | string), 
   ETYPE extends REACTIVECLOSURE<INITTYPE> | NONEREACTIVECLOSURE<INITTYPE>,
   FUNCTYPE extends (typeof createReactiveClosure | typeof createNoneReactiveClosure)>
   (element: INPUT | BPARAM,
@@ -120,7 +125,7 @@ const SubBlock = class implements RELAY {
     if (linePath) {
       closure = <ETYPE>objectPath.get(this, linePath)
       if (!closure) { throw Error(`input path ${linePath} invalid on ${this}`)}
-      closure.lineIn(init)
+      closure.lineIn(<INITTYPE>init)
     } else {
       closure = createFunc(init)
     }
@@ -128,7 +133,8 @@ const SubBlock = class implements RELAY {
   }
 
   run () {
-    this.logic(this)
+    let logic = <Function>(this.logic)
+    logic(this)
   }
 }
 

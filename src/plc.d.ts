@@ -2,16 +2,15 @@ interface RELAY {
   pe: () => boolean
   ne: () => boolean
   toString: () => boolean
-  [propertyName: string]: any
 }
 
-interface REACTIVECLOSURE<T> {
+interface REACTIVECLOSURE<T extends (boolean | number | string)> {
   val: T
   toString: () => T
   lineIn: (newVal: T) => void
 }
 
-interface NONEREACTIVECLOSURE<T> {
+interface NONEREACTIVECLOSURE<T extends (boolean | number | string)> {
   // val: T ===> 将存储在createNoneReactiveClosure闭包中
   toString: () => T
   lineIn: (newVal: T) => void
@@ -24,7 +23,7 @@ interface DPTR {
 }
 
 interface LogicFuncParam {
-  [paramName: string]: any
+  [paramName: string]: any // type 'any' for invoke 'toString()' by using '+-*/^'
 }
 
 
@@ -33,7 +32,7 @@ interface LogicFuncParam {
 interface BPARAM {
   name: string
   linePath?: string
-  init: any // 必须初始化
+  init: (boolean | number | string) // 必须初始化
 }
 
 interface INPUT {
