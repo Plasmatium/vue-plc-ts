@@ -3,25 +3,23 @@
     <img src="./assets/logo.png">
     <HelloWorld/>
     <hr>
-    {{holder}}
+    <TEST />
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue'
 import HelloWorld from './components/HelloWorld.vue'
-import {Holder} from './PLC/baseBlock'
-debugger
-console.log(Maker)
+import TEST from './test'
 export default Vue.extend({
   name: 'app',
   data () {
     return {
-      holder: Maker.Holder
     }
   },
   components: {
-    HelloWorld
+    HelloWorld,
+    TEST
   }
 })
 </script>
