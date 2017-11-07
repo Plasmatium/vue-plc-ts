@@ -1,16 +1,22 @@
-interface RELAY {
+interface EDGE {
   pe: () => boolean
   ne: () => boolean
-  toString: () => boolean
 }
 
-interface REACTIVECLOSURE<T extends (boolean | number | string)> {
+interface RELAY extends EDGE {
+  toString: () => boolean
+  lineIn: (newVal: boolean) => void
+}
+
+interface REACTIVECLOSURE
+<T extends (boolean | number | string)> {
   val: T
   toString: () => T
   lineIn: (newVal: T) => void
 }
 
-interface NONEREACTIVECLOSURE<T extends (boolean | number | string)> {
+interface NONEREACTIVECLOSURE
+<T extends (boolean | number | string)> {
   // val: T ===> 将存储在createNoneReactiveClosure闭包中
   toString: () => T
   lineIn: (newVal: T) => void
@@ -63,6 +69,6 @@ interface SHAPE {
 // 和所有SubBlock（implements RELAY）类型
 interface IMaker {
   [blockName: string]: {
-    new(): RELAY
+    new(initVal?: any): RELAY
   }
 }

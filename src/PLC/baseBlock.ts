@@ -26,17 +26,14 @@ const createNoneReactiveClosure = function
   }
 }
 
-const BaseBlock = class {} // just for type assertion
-
 const Relay = class implements RELAY {
   state: boolean
   getLast: () => {
     val: boolean,
     set: (newVal: boolean) => void
   }
-  constructor (dptr?: DPTR) {
-    debugger
-    this.state = false || Boolean(dptr && dptr.qInit)
+  constructor (init?: boolean) {
+    this.state = false || Boolean(init)
     this.getLast = () => {
       let val = this.state
       return {val, set: (newVal) => { val = newVal }}
@@ -89,8 +86,18 @@ const SubBlock = class implements RELAY {
     })
 
     // 注入所有input到this，并根据linePath连接到坐实的具体变量上
+    // 将input处理为Relay，应为需要pe，ne和lineIn
     shape.inputs && shape.inputs.forEach(input => {
-      this.insertElement(input, createReactiveClosure)
+      let {name, linePath, init} = input
+      if (linePath) {
+        let existRelay = <RELAY>objectPath.get(this, linePath)
+        if (!existRelay) throw Error(`linePath: ${linePath} not exsit on ${this}`)
+        // 此处的lineIn还是在构造函数中，不会触发Vue的responsive赋值
+        existRelay.lineIn(init)
+        this[name] = existRelay
+      } else {
+        this[name] = new Relay(init)
+      }
     })
 
     this.logic = shape.logic
@@ -108,7 +115,7 @@ const SubBlock = class implements RELAY {
   pe() { let Q = <RELAY>(this.Q); return Q.pe() }
   ne() { let Q = <RELAY>(this.Q); return Q.ne() }
   toString() { return this.Q.toString() }
-
+  lineIn() { throw Error(`lineIn() of base SubBlock is not implemented: ${this}`) }
   
   // 注入函数，将param或者input注入到this中
   // INITTYPE是函数参数element中init的类型
