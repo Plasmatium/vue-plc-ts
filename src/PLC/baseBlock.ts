@@ -112,18 +112,18 @@ const SubBlock = class implements RELAY {
   
   // 注入函数，将param或者input注入到this中
   // INITTYPE是函数参数element中init的类型
-  // ETYPE是createFunc的返回类型，是响应闭包或者非响应闭包
+  // CLOSURETYPE是createFunc的返回类型，是响应闭包或者非响应闭包
   // FUNCTYPE是为了约束createFunc只在createNoneReactiveClosure
   // 和createReactiveClosure中选择
   insertElement<INITTYPE extends (boolean | number | string), 
-  ETYPE extends REACTIVECLOSURE<INITTYPE> | NONEREACTIVECLOSURE<INITTYPE>,
+  CLOSURETYPE extends REACTIVECLOSURE<INITTYPE> | NONEREACTIVECLOSURE<INITTYPE>,
   FUNCTYPE extends (typeof createReactiveClosure | typeof createNoneReactiveClosure)>
   (element: INPUT | BPARAM,
     createFunc: FUNCTYPE): void {
     let {name, init, linePath} = element
-    let closure: ETYPE
+    let closure: CLOSURETYPE
     if (linePath) {
-      closure = <ETYPE>objectPath.get(this, linePath)
+      closure = <CLOSURETYPE>objectPath.get(this, linePath)
       if (!closure) { throw Error(`input path ${linePath} invalid on ${this}`)}
       closure.lineIn(<INITTYPE>init)
     } else {

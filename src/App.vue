@@ -10,7 +10,6 @@
 <script lang="ts">
 import Vue from 'vue'
 import HelloWorld from './components/HelloWorld.vue'
-import TEST from './test'
 export default Vue.extend({
   name: 'app',
   data () {
@@ -19,7 +18,6 @@ export default Vue.extend({
   },
   components: {
     HelloWorld,
-    TEST
   }
 })
 </script>
