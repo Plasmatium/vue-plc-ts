@@ -3,7 +3,6 @@
     <img src="./assets/logo.png">
     <HelloWorld/>
     <hr>
-    <TEST />
   </div>
 </template>
 
@@ -16,8 +15,10 @@ export default Vue.extend({
     return {
     }
   },
+  computed: {
+  },
   components: {
-    HelloWorld,
+    HelloWorld
   }
 })
 </script>

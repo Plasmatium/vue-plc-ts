@@ -28,7 +28,7 @@ const createNoneReactiveClosure = function
 
 const Relay = class implements RELAY {
   state: boolean
-  getLast: () => {
+  private getLast: () => {
     val: boolean,
     set: (newVal: boolean) => void
   }
@@ -42,7 +42,7 @@ const Relay = class implements RELAY {
   toString (): boolean {
     return Boolean(this.state)
   }
-  lineIn (newState: boolean | Number) {
+  lineIn (newState: boolean | number | string) {
     newState = Boolean(newState)
     this.getLast().set(newState)
     if (newState === this.state) return
@@ -88,16 +88,17 @@ const SubBlock = class implements RELAY {
     // 注入所有input到this，并根据linePath连接到坐实的具体变量上
     // 将input处理为Relay，应为需要pe，ne和lineIn
     shape.inputs && shape.inputs.forEach(input => {
-      let {name, linePath, init} = input
-      if (linePath) {
-        let existRelay = <RELAY>objectPath.get(this, linePath)
-        if (!existRelay) throw Error(`linePath: ${linePath} not exsit on ${this}`)
-        // 此处的lineIn还是在构造函数中，不会触发Vue的responsive赋值
-        existRelay.lineIn(init)
-        this[name] = existRelay
-      } else {
-        this[name] = new Relay(init)
-      }
+      this.insertElement(input, (init: boolean) => new Relay(init))
+      // let {name, linePath, init} = input
+      // if (linePath) {
+      //   let existRelay = <RELAY>objectPath.get(this, linePath)
+      //   if (!existRelay) throw Error(`linePath: ${linePath} not exsit on ${this}`)
+      //   // 此处的lineIn还是在构造函数中，不会触发Vue的responsive赋值
+      //   existRelay.lineIn(init)
+      //   this[name] = existRelay
+      // } else {
+      //   this[name] = new Relay(init)
+      // }
     })
 
     this.logic = shape.logic
@@ -115,28 +116,27 @@ const SubBlock = class implements RELAY {
   pe() { let Q = <RELAY>(this.Q); return Q.pe() }
   ne() { let Q = <RELAY>(this.Q); return Q.ne() }
   toString() { return this.Q.toString() }
-  lineIn() { throw Error(`lineIn() of base SubBlock is not implemented: ${this}`) }
+  lineIn(): never { throw Error(`lineIn() of base SubBlock is not implemented: ${this}`) }
   
   // 注入函数，将param或者input注入到this中
-  // INITTYPE是函数参数element中init的类型
-  // CLOSURETYPE是createFunc的返回类型，是响应闭包或者非响应闭包
-  // FUNCTYPE是为了约束createFunc只在createNoneReactiveClosure
-  // 和createReactiveClosure中选择
-  insertElement<INITTYPE extends (boolean | number | string), 
-  CLOSURETYPE extends REACTIVECLOSURE<INITTYPE> | NONEREACTIVECLOSURE<INITTYPE>,
-  FUNCTYPE extends (typeof createReactiveClosure | typeof createNoneReactiveClosure)>
-  (element: INPUT | BPARAM,
-    createFunc: FUNCTYPE): void {
+  // BLOCKTYPE是createFunc的返回类型，是Relay或者非响应闭包
+  insertElement
+  <BLOCKTYPE extends RELAY | NONEREACTIVECLOSURE<boolean | number | string>>
+  (element: INPUT | IPARAM,
+    createFunc: (init: boolean | number | string) => BLOCKTYPE): void {
     let {name, init, linePath} = element
-    let closure: CLOSURETYPE
+    let block: BLOCKTYPE
+    // 如果存在linePath链路，那么把这个元素链接到linePath指定的元素上，
+    // 然后将init值赋给他，否则就重新创建新的元素
     if (linePath) {
-      closure = <CLOSURETYPE>objectPath.get(this, linePath)
-      if (!closure) { throw Error(`input path ${linePath} invalid on ${this}`)}
-      closure.lineIn(<INITTYPE>init)
+      block = <BLOCKTYPE>objectPath.get(this, linePath)
+      if (!block) { throw Error(`input path ${linePath} invalid on ${this}`)}
+      // 此处的lineIn还是在构造函数中，不会触发Vue的responsive赋值
+      block.lineIn(init)
     } else {
-      closure = createFunc(init)
+      block = createFunc(init)
     }
-    this[name] = closure
+    this[name] = block
   }
 
   run () {
