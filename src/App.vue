@@ -3,12 +3,14 @@
     <img src="./assets/logo.png">
     <HelloWorld/>
     <hr>
+    <Block/>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue'
 import HelloWorld from './components/HelloWorld.vue'
+import Block from './PLC/block'
 export default Vue.extend({
   name: 'app',
   data () {
@@ -18,7 +20,8 @@ export default Vue.extend({
   computed: {
   },
   components: {
-    HelloWorld
+    HelloWorld,
+    Block
   }
 })
 </script>
