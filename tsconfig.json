@@ -7,9 +7,8 @@
       "noImplicitAny": true,
       "module": "es6",
       "moduleResolution": "node",
-      "target": "es6",
-      "jsx": "react",
-      "jsxFactory": "h"
+      "target": "es5",
+      "jsx": "preserve"
   },
   "include": [
       "./src/**/*"
