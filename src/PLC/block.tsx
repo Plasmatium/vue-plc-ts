@@ -7,6 +7,7 @@ export default Vue.extend({
   functional: true,
   render (h, context) {
     // return h('h1', 'hello!')
+    let a: string
     return (
       <div>
         <h1>Hello</h1>
