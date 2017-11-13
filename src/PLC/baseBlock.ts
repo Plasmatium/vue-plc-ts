@@ -9,7 +9,7 @@ const createReactiveClosure = function
     if (newVal === rslt.val) { return }
     else { rslt.val = newVal }
   }
-  (<any>Object).assign(rslt, {toString, lineIn})
+  Object.assign(rslt, {toString, lineIn})
   return rslt
 }
 

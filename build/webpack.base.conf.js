@@ -59,11 +59,22 @@ module.exports = {
       },
       {
         test: /\.ts$/,
-        loader: 'ts-loader',
+        use: [
+          {
+            loader: 'babel-loader'
+          },
+          {
+            loader: 'ts-loader',
+            options: {
+              appendTsSuffixTo: [/\.vue$/]
+            }
+          }
+        ],
         exclude: /node_modules/,
-        options: {
-          appendTsSuffixTo: [/\.vue$/],
-        }
+        // loader: 'babel-loader!ts-loader',
+        // options: {
+        //   appendTsSuffixTo: [/\.vue$/],
+        // }
       },
       {
         test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
