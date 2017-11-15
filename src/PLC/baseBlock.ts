@@ -123,7 +123,7 @@ const SubBlock = class implements RELAY {
   insertElement
   <BLOCKTYPE extends RELAY | NONEREACTIVECLOSURE<boolean | number | string>>
   (element: INPUT | IPARAM,
-    createFunc: (init: boolean | number | string) => BLOCKTYPE): void {
+    createFunc: (init: any) => BLOCKTYPE): void {
     let {name, init, linePath} = element
     let block: BLOCKTYPE
     // 如果存在linePath链路，那么把这个元素链接到linePath指定的元素上，
