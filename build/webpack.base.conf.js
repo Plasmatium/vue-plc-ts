@@ -28,10 +28,10 @@ module.exports = {
       vue: 'vue/dist/vue.esm.js'
     },
     extensions: ['.ts', '.tsx', '.js', '.vue', '.json'],
-    alias: {
-      'vue$': 'vue/dist/vue.esm.js',
-      '@': resolve('src'),
-    }
+    // alias: {
+    //   'vue$': 'vue/dist/vue.esm.js',
+    //   '@': resolve('src'),
+    // }
   },
   module: {
     rules: [
