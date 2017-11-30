@@ -2,10 +2,10 @@
   <div id="app">
     <img src="./assets/logo.png">
     <HelloWorld/>
-    <input type="checkbox" v-model="di0" @click="clki0">i0</input>
-    <input type="checkbox" v-model="di1" @click="clki1">i1</input>
+    <input type="checkbox" v-model="di0">i0</input>
+    <input type="checkbox" v-model="di1">i1</input>
     <hr>
-    <div>{{holderQ}}</div>
+    <div id="result">{{holderQ}}</div>
   </div>
 </template>
 
@@ -34,17 +34,14 @@ export default Vue.extend({
       let {i0, i1, Q}: {
         [name: string]: any
       } = this.holder
-      Q.lineIn((i1^1)*10 + Q)
+
+      i0.lineIn(this.di0)
+      i1.lineIn(this.di1)
+      Q.lineIn((i1^1)*(i0 + Q))
       return Q.toString()
     }
   },
   methods: {
-    clki0: function () {
-      console.log('clki0:', this.di0)
-    },
-    clki1: function () {
-      console.log('chki1:', this.di1)
-    }
   },
   components: {
     HelloWorld

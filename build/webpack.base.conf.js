@@ -20,6 +20,13 @@ module.exports = {
       : config.dev.assetsPublicPath
   },
   resolve: {
+    alias: {
+      /*
+      这条很重要，否则tsconfig.json里面的module使用commonjs或者esnext等
+      不能妥协引入vue的时候，require在test文件夹中，或者import在.vue中
+       */
+      vue: 'vue/dist/vue.esm.js'
+    },
     extensions: ['.ts', '.tsx', '.js', '.vue', '.json'],
     alias: {
       'vue$': 'vue/dist/vue.esm.js',

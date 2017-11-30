@@ -1,7 +1,5 @@
-require('chai').should()
+import Vue from 'vue'
 
-const Vue = require('vue')
-// import Vue from 'vue'
 import {BaseBlock} from '../src/PLC/PLCBlock'
 
 describe('BaseBlock in Vue data', function () {
