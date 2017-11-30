@@ -1,4 +1,5 @@
 import Vue from 'vue'
+
 // import {mapState} from 'vuex'
 
 // let React = Vue
@@ -6,7 +7,9 @@ import Vue from 'vue'
 export default Vue.extend({
   functional: true,
   render (h, context) {
-    // return h('h1', 'hello!')
+    // context.props.holder: {
+    //   I0, I1, Q
+    // }
     let a: string
     return (
       <div>

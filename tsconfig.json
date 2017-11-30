@@ -5,9 +5,10 @@
       "strict": true,
       "noImplicitReturns": true,
       "noImplicitAny": true,
-      "module": "commonjs",
+      "module": "esnext",
       "target": "es6",
-      "jsx": "preserve"
+      "jsx": "preserve",
+      "moduleResolution": "node" // if don't set this, webpack won't work
   },
   "include": [
       "./src"

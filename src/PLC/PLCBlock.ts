@@ -1,4 +1,4 @@
-export class BaseBlock implements PLCBlock {
+export  class BaseBlock implements PLCBlock {
   private static stateClosure: StateClosure = {}
   readonly token: symbol = Symbol('token for closure')
   Q: boolean
