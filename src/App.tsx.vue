@@ -9,9 +9,9 @@
   </div>
 </template>
 
-<script lang="ts">
+<script lang="tsx">
 import Vue from 'vue'
-import HelloWorld from './components/HelloWorld.vue'
+import HelloWorld from './components/HelloWorld.tsx.vue'
 import {BaseBlock} from './PLC/PLCBlock'
 
 let holder = {

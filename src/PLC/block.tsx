@@ -3,7 +3,6 @@ import Vue from 'vue'
 // import {mapState} from 'vuex'
 
 // let React = Vue
-
 export default Vue.extend({
   functional: true,
   render (h, context) {
