@@ -80,6 +80,9 @@ module.exports = {
           },
           {
             loader: 'ts-loader',
+            options: {
+              // DO NOT append anything here
+            }
           }
         ],
         exclude: /node_modules/
